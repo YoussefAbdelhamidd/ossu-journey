@@ -152,6 +152,34 @@ export function CourseDesk({
     ? problemSets.filter((item) => item.dueBeforeLectureNumber === active.number)
     : [];
 
+  // Problem sets that unlock the next lecture after the current one is finished.
+  // Without this, PS0 (due before lecture 2) never shows a Mark done control while
+  // lecture 1 is still selected.
+  const blockingGates = useMemo(() => {
+    if (!course.unlocked || !active) return [];
+    const nextLocked = course.lectures.find(
+      (lecture) => lecture.number > active.number && !lecture.unlocked,
+    );
+    if (!nextLocked) return [];
+    return problemSets.filter(
+      (item) =>
+        !item.done &&
+        item.dueBeforeLectureNumber != null &&
+        item.dueBeforeLectureNumber > active.number &&
+        item.dueBeforeLectureNumber <= nextLocked.number,
+    );
+  }, [course.unlocked, course.lectures, active, problemSets]);
+
+  const gatesToShow = (() => {
+    const seen = new Set<string>();
+    const list = [...blockingGates, ...dueForActive];
+    return list.filter((gate) => {
+      if (seen.has(gate.id)) return false;
+      seen.add(gate.id);
+      return true;
+    });
+  })();
+
   return (
     <div className="flex flex-col gap-6">
       <header className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
@@ -220,15 +248,16 @@ export function CourseDesk({
         <div className="flex flex-col gap-4">
           {course.unlocked && active ? (
             <>
-              {dueForActive.map((gate) => (
+              {gatesToShow.map((gate) => (
                 <div
                   key={gate.id}
                   id={gate.id}
                   className="scroll-mt-28 rounded-2xl border border-[#e7c7a2] bg-[#fff7ea] p-4"
                 >
                   <p className="text-xs tracking-[0.14em] text-[#9c4a32] uppercase">
-                    Due before lecture {active.number}
+                    Due before lecture {gate.dueBeforeLectureNumber}
                     {gate.graded ? "" : " · ungraded"}
+                    {!gate.done ? " · required to unlock the next lecture" : ""}
                   </p>
                   <h2 className="mt-1 text-lg">
                     {gate.code}: {gate.title}
@@ -242,8 +271,8 @@ export function CourseDesk({
                       targetId={gate.id}
                       action="completed"
                       done={gate.done}
-                      label="Mark done"
-                      doneLabel="Done · undo"
+                      label={`Mark ${gate.code} done`}
+                      doneLabel={`${gate.code} done · undo`}
                       variant="outline"
                     />
                   </div>
@@ -507,16 +536,17 @@ export function CourseDesk({
                   return (
                     <li key={lecture.id} className="flex flex-col gap-1">
                       {gates.map((gate) => (
-                        <div
+                        <a
                           key={gate.id}
-                          className="rounded-lg border border-[#e7c7a2] bg-[#fff7ea] px-2.5 py-2 text-xs"
+                          href={`#${gate.id}`}
+                          className="block rounded-lg border border-[#e7c7a2] bg-[#fff7ea] px-2.5 py-2 text-xs hover:ring-1 hover:ring-[#d7a15e]"
                         >
                           <p className="font-medium text-[#9c4a32]">
                             {gate.code}
-                            {gate.done ? " · done" : " · due"}
+                            {gate.done ? " · done" : " · due · tap to mark"}
                           </p>
                           <p className="text-muted-foreground">{gate.title}</p>
-                        </div>
+                        </a>
                       ))}
                       <button
                         type="button"

@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// Single learner plus a tutor who reviews understanding-check answers.
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  role         String
+  timezone     String     @default("Africa/Cairo")
+  createdAt    DateTime   @default(now())
+  answers      Answer[]
+  progress     Progress[]
+  studyDays    StudyDay[]
+  feedback     Feedback[] @relation("TutorFeedback")
+}
+
+model Section {
+  id          String       @id
+  title       String
+  summary     String
+  order       Int
+  subsections Subsection[]
+}
+
+model Subsection {
+  id        String    @id
+  sectionId String
+  section   Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title     String
+  summary   String
+  topics    String
+  order     Int
+  courses   Course[]
+
+  @@index([sectionId])
+}
+
+model Course {
+  id              String       @id
+  subsectionId    String
+  subsection      Subsection   @relation(fields: [subsectionId], references: [id], onDelete: Cascade)
+  title           String
+  provider        String?
+  instructor      String?
+  url             String
+  altUrl          String?
+  guideUrl        String?
+  discussionUrl   String?
+  playlistUrl     String?
+  durationWeeks   Float?
+  durationLabel   String?
+  hoursPerWeekMin Float?
+  hoursPerWeekMax Float?
+  estimatedHours  Float?
+  prerequisites   String
+  notes           String?
+  required        Boolean      @default(true)
+  choiceGroup     String?
+  videoTodo       String?
+  order           Int
+  lectures        Lecture[]
+  assignments     Assignment[]
+
+  @@index([subsectionId])
+}
+
+model Lecture {
+  id              String     @id
+  courseId        String
+  course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  number          Int
+  title           String
+  summary         String
+  readings        String?
+  youtubeId       String?
+  videoTodo       String?
+  durationSeconds Int?
+  pageUrl         String?
+  slidesUrl       String?
+  codeUrl         String?
+  order           Int
+  questions       Question[]
+
+  @@unique([courseId, number])
+  @@index([courseId])
+}
+
+model Assignment {
+  id                      String  @id
+  courseId                String
+  course                  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  kind                    String
+  code                    String
+  title                   String
+  summary                 String
+  url                     String?
+  codeUrl                 String?
+  solutionsUrl            String?
+  lectureNumber           Int?
+  dueBeforeLectureNumber  Int?
+  releasedAtLectureNumber Int?
+  graded                  Boolean @default(true)
+  order                   Int
+
+  @@index([courseId])
+}
+
+model Question {
+  id        String   @id
+  lectureId String
+  lecture   Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  order     Int
+  kind      String
+  prompt    String
+  answers   Answer[]
+
+  @@unique([lectureId, order])
+}
+
+model Answer {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  body       String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  feedback   Feedback?
+
+  @@unique([userId, questionId])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  answerId  String   @unique
+  answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  tutorId   String
+  tutor     User     @relation("TutorFeedback", fields: [tutorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Progress {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType String
+  targetId   String
+  status     String
+  manual     Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+}
+
+model StudyDay {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date     String
+  inWindow Boolean @default(false)
+
+  @@unique([userId, date])
+}

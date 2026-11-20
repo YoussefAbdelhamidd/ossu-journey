@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AnswerForm } from "@/components/answer-form";
 import { CertificateCard } from "@/components/certificate-card";
+import { CourseCover } from "@/components/course-cover";
 import { LectureNotes } from "@/components/lecture-notes";
 import { ProgressToggle } from "@/components/progress-toggle";
 import { ReadingShelf } from "@/components/reading-shelf";
@@ -184,20 +185,7 @@ export function CourseDesk({
     <div className="flex flex-col gap-6">
       <header className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
         <div className="grid gap-0 lg:grid-cols-[280px_1fr]">
-          <div className="relative min-h-44 bg-[#0a3f3d]">
-            {course.coverImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={course.coverImage}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-end p-5 text-[#f6f3ea]">
-                <p className="font-sans text-2xl font-semibold">{course.sectionTitle}</p>
-              </div>
-            )}
-          </div>
+          <CourseCover title={course.title} className="min-h-44" />
           <div className="p-5 sm:p-7">
             <p className="text-xs text-muted-foreground">
               <Link href="/curriculum" className="hover:underline">

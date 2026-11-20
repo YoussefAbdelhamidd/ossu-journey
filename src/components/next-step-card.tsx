@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CourseCover } from "@/components/course-cover";
 import type { CurrentItem } from "@/lib/progress";
 
 const stepHint: Record<CurrentItem["step"], string> = {
@@ -11,7 +12,6 @@ const stepHint: Record<CurrentItem["step"], string> = {
 
 export function NextStepCard({
   current,
-  courseCover,
   coursePercent,
 }: {
   current: CurrentItem | null;
@@ -43,25 +43,7 @@ export function NextStepCard({
   return (
     <section className="overflow-hidden rounded-2xl bg-[#0a3f3d] text-[#f6f3ea] shadow-sm">
       <div className="grid sm:grid-cols-[200px_1fr]">
-        <div className="relative min-h-36 bg-[#0e6b66]/40 sm:min-h-full">
-          {courseCover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={courseCover}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover opacity-90"
-            />
-          ) : (
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 20%, #1a8a84 0%, transparent 55%), linear-gradient(160deg, #0e6b66, #0a3f3d)",
-              }}
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a3f3d]/70 to-transparent sm:bg-gradient-to-r" />
-        </div>
+        <CourseCover title={current.courseTitle} className="min-h-40 sm:min-h-full" />
         <div className="flex flex-col justify-center p-6 sm:p-8">
           <div className="flex flex-wrap items-center gap-2 text-xs tracking-[0.14em] text-[#d7ebe6] uppercase">
             <span>Up next</span>

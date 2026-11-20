@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CourseCover } from "@/components/course-cover";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { getSession } from "@/lib/session";
@@ -38,23 +39,16 @@ export default async function CurriculumPage() {
 
       {data.sections.map((section) => (
         <section key={section.id} id={section.id} className="scroll-mt-20">
-          <div className="mb-4 overflow-hidden rounded-2xl ring-1 ring-foreground/10">
-            {section.coverImage ? (
-              <div className="relative h-28 sm:h-36">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={section.coverImage}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0a3f3d]/80 to-transparent" />
-                <div className="absolute inset-0 flex flex-col justify-end p-5">
-                  <h2 className="text-3xl text-[#f6f3ea]">{section.title}</h2>
-                </div>
-              </div>
-            ) : (
-              <h2 className="p-5 text-3xl text-[#0a3f3d]">{section.title}</h2>
-            )}
+          <div
+            className="mb-4 overflow-hidden rounded-2xl ring-1 ring-foreground/10"
+            style={{
+              background:
+                "radial-gradient(circle at 85% 20%, #d7a15e66, transparent 40%), linear-gradient(120deg, #0a3f3d, #0e6b66)",
+            }}
+          >
+            <div className="flex h-28 items-end p-5 sm:h-36">
+              <h2 className="text-3xl text-[#f6f3ea]">{section.title}</h2>
+            </div>
           </div>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
             {section.summary}
@@ -77,16 +71,10 @@ export default async function CurriculumPage() {
                         className="block overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10 hover:ring-[#0e6b66]/40"
                       >
                         <div className="flex gap-0">
-                          {course.coverImage ? (
-                            <div className="relative hidden w-28 shrink-0 sm:block">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={course.coverImage}
-                                alt=""
-                                className="absolute inset-0 h-full w-full object-cover"
-                              />
-                            </div>
-                          ) : null}
+                          <CourseCover
+                            title={course.title}
+                            className="hidden min-h-[7.5rem] w-28 shrink-0 self-stretch sm:block"
+                          />
                           <div className="min-w-0 flex-1 px-4 py-3">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium">{course.title}</span>

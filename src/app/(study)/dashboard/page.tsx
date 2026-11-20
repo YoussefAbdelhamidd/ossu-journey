@@ -31,11 +31,7 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <NextStepCard
-        current={data.current}
-        courseCover={data.currentCourse?.coverImage}
-        coursePercent={data.currentCourse?.percent}
-      />
+      <NextStepCard current={data.current} coursePercent={data.currentCourse?.percent} />
 
       {data.timeline.length > 0 && data.currentCourse ? (
         <CoursePath

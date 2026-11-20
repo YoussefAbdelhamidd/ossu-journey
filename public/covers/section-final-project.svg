@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img">
+  <rect width="960" height="320" fill="#3d2a16"/>
+  <rect x="650" y="80" width="200" height="140" rx="12" fill="#fff7ea"/>
+  <rect x="680" y="110" width="140" height="12" fill="#0e6b66"/>
+  <rect x="680" y="140" width="100" height="12" fill="#d7a15e"/>
+  <rect x="680" y="170" width="120" height="12" fill="#0a3f3d" opacity="0.5"/>
+  <text x="60" y="70" fill="#f6f3ea" font-family="Georgia, serif" font-size="42">Final project</text>
+  <text x="60" y="115" fill="#f0dfc8" font-family="system-ui, sans-serif" font-size="20">Something you can show</text>
+</svg>

@@ -8,6 +8,9 @@ import { GET as lectureRoute } from "@/app/api/lectures/[id]/route";
 import { PUT as saveAnswer } from "@/app/api/answers/route";
 import { POST as saveProgress } from "@/app/api/progress/route";
 import { POST as saveFeedback } from "@/app/api/tutor/feedback/route";
+import { PUT as saveNotes } from "@/app/api/lectures/[id]/notes/route";
+import { PUT as savePlayback } from "@/app/api/lectures/[id]/playback/route";
+import { GET as courseRoute } from "@/app/api/courses/[slug]/route";
 
 async function signIn(email: string, password: string) {
   const response = await login(
@@ -139,5 +142,49 @@ describe("API", () => {
     expect(afterDash.track.percent).toBeGreaterThan(0);
     expect(afterDash.counts.questionsDone).toBeGreaterThan(0);
     expect(afterDash.streak.studiedToday).toBe(true);
+
+    const notes = await saveNotes(
+      authed("http://localhost/api/lectures/lec-intro-python-1/notes", token!, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ body: "Names bind to objects." }),
+      }),
+      { params: Promise.resolve({ id: "lec-intro-python-1" }) },
+    );
+    expect(notes.status).toBe(200);
+    expect(await notes.json()).toMatchObject({ body: "Names bind to objects." });
+
+    const playback = await savePlayback(
+      authed("http://localhost/api/lectures/lec-intro-python-1/playback", token!, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ positionSeconds: 125 }),
+      }),
+      { params: Promise.resolve({ id: "lec-intro-python-1" }) },
+    );
+    expect(playback.status).toBe(200);
+    expect(await playback.json()).toMatchObject({ positionSeconds: 125 });
+
+    const skipLecture = await saveProgress(
+      authed("http://localhost/api/progress", token!, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          targetType: "lecture",
+          targetId: "lec-intro-python-3",
+          action: "watched",
+        }),
+      }),
+    );
+    expect(skipLecture.status).toBe(403);
+
+    const lockedCourse = await courseRoute(
+      authed("http://localhost/api/courses/systematic-program-design", token!),
+      { params: Promise.resolve({ slug: "systematic-program-design" }) },
+    );
+    expect(lockedCourse.status).toBe(200);
+    const lockedBody = await lockedCourse.json();
+    expect(lockedBody.unlocked).toBe(false);
+    expect(lockedBody.lockedByTitle).toBeTruthy();
   });
 });

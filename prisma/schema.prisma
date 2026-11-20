@@ -10,17 +10,19 @@ datasource db {
 
 /// Single learner plus a tutor who reviews understanding-check answers.
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String         @id @default(cuid())
+  email        String         @unique
   name         String
   passwordHash String
   role         String
-  timezone     String     @default("Africa/Cairo")
-  createdAt    DateTime   @default(now())
+  timezone     String         @default("Africa/Cairo")
+  createdAt    DateTime       @default(now())
   answers      Answer[]
   progress     Progress[]
   studyDays    StudyDay[]
-  feedback     Feedback[] @relation("TutorFeedback")
+  feedback     Feedback[]     @relation("TutorFeedback")
+  notes        LectureNote[]
+  playbacks    Playback[]
 }
 
 model Section {
@@ -28,6 +30,7 @@ model Section {
   title       String
   summary     String
   order       Int
+  coverImage  String?
   subsections Subsection[]
 }
 
@@ -45,38 +48,42 @@ model Subsection {
 }
 
 model Course {
-  id              String       @id
-  subsectionId    String
-  subsection      Subsection   @relation(fields: [subsectionId], references: [id], onDelete: Cascade)
-  title           String
-  provider        String?
-  instructor      String?
-  url             String
-  altUrl          String?
-  guideUrl        String?
-  discussionUrl   String?
-  playlistUrl     String?
-  durationWeeks   Float?
-  durationLabel   String?
-  hoursPerWeekMin Float?
-  hoursPerWeekMax Float?
-  estimatedHours  Float?
-  prerequisites   String
-  notes           String?
-  required        Boolean      @default(true)
-  choiceGroup     String?
-  videoTodo       String?
-  order           Int
-  lectures        Lecture[]
-  assignments     Assignment[]
+  id                  String       @id
+  subsectionId        String
+  subsection          Subsection   @relation(fields: [subsectionId], references: [id], onDelete: Cascade)
+  title               String
+  provider            String?
+  instructor          String?
+  url                 String
+  altUrl              String?
+  guideUrl            String?
+  discussionUrl       String?
+  playlistUrl         String?
+  durationWeeks       Float?
+  durationLabel       String?
+  hoursPerWeekMin     Float?
+  hoursPerWeekMax     Float?
+  estimatedHours      Float?
+  prerequisites       String
+  notes               String?
+  required            Boolean      @default(true)
+  choiceGroup         String?
+  videoTodo           String?
+  coverImage          String?
+  offersCertificate   Boolean      @default(false)
+  certificateLabel    String?
+  order               Int
+  lectures            Lecture[]
+  assignments         Assignment[]
+  readings            Reading[]
 
   @@index([subsectionId])
 }
 
 model Lecture {
-  id              String     @id
+  id              String         @id
   courseId        String
-  course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course          Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   number          Int
   title           String
   summary         String
@@ -89,6 +96,8 @@ model Lecture {
   codeUrl         String?
   order           Int
   questions       Question[]
+  notes           LectureNote[]
+  playbacks       Playback[]
 
   @@unique([courseId, number])
   @@index([courseId])
@@ -110,6 +119,20 @@ model Assignment {
   releasedAtLectureNumber Int?
   graded                  Boolean @default(true)
   order                   Int
+
+  @@index([courseId])
+}
+
+model Reading {
+  id       String  @id
+  courseId String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  author   String?
+  kind     String
+  url      String
+  summary  String?
+  order    Int
 
   @@index([courseId])
 }
@@ -162,6 +185,32 @@ model Progress {
   updatedAt  DateTime @updatedAt
 
   @@unique([userId, targetType, targetId])
+  @@index([userId])
+}
+
+model LectureNote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lectureId String
+  lecture   Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  body      String   @default("")
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lectureId])
+  @@index([userId])
+}
+
+model Playback {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lectureId       String
+  lecture         Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  positionSeconds Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, lectureId])
   @@index([userId])
 }
 

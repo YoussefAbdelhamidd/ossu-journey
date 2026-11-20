@@ -20,3 +20,11 @@ export const feedbackSchema = z.object({
   answerId: z.string().min(1).max(200),
   body: z.string().trim().min(1).max(10_000),
 });
+
+export const lectureNoteSchema = z.object({
+  body: z.string().max(50_000),
+});
+
+export const playbackSchema = z.object({
+  positionSeconds: z.number().int().min(0).max(86_400),
+});

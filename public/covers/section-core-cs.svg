@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img">
+  <rect width="960" height="320" fill="#12352f"/>
+  <g fill="none" stroke="#d7a15e" stroke-width="3">
+    <rect x="620" y="60" width="80" height="50" rx="6"/>
+    <rect x="740" y="60" width="80" height="50" rx="6"/>
+    <rect x="680" y="140" width="80" height="50" rx="6"/>
+    <rect x="620" y="220" width="80" height="50" rx="6"/>
+    <rect x="740" y="220" width="80" height="50" rx="6"/>
+    <path d="M660 110 V140 M780 110 V140 M720 190 V220"/>
+  </g>
+  <text x="60" y="70" fill="#f6f3ea" font-family="Georgia, serif" font-size="42">Core CS</text>
+  <text x="60" y="115" fill="#d7ebe6" font-family="system-ui, sans-serif" font-size="20">Systems · theory · applications</text>
+</svg>

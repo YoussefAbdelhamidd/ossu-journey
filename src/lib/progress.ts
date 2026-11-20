@@ -332,18 +332,18 @@ export function findCurrentItem(
         const questionsLeft = Math.max(0, lecture.questionCount - answered);
         let step: "watch" | "finger" | "questions" = "watch";
         let label = `Watch lecture ${lecture.number}: ${lecture.title}`;
-        let href = `/lectures/${lecture.id}`;
+        let href = `/courses/${course.id}?lecture=${lecture.id}`;
         if (watched && lecture.fingerAssignmentId && !fingerDone) {
           step = "finger";
           label = `Finish the finger exercise for lecture ${lecture.number}`;
-          href = `/lectures/${lecture.id}#finger`;
+          href = `/courses/${course.id}?lecture=${lecture.id}#finger`;
         } else if (watched && questionsLeft > 0) {
           step = "questions";
           label =
             questionsLeft === 1
               ? `Answer 1 understanding check for lecture ${lecture.number}`
               : `Answer ${questionsLeft} understanding checks for lecture ${lecture.number}`;
-          href = `/lectures/${lecture.id}#checks`;
+          href = `/courses/${course.id}?lecture=${lecture.id}#checks`;
         }
         return {
           kind: "lecture",
@@ -464,4 +464,144 @@ export function formatDuration(seconds: number | null | undefined): string | nul
   const minutes = Math.round((seconds % 3600) / 60);
   if (hours > 0) return `${hours}h ${minutes}m`;
   return `${minutes}m`;
+}
+
+export type LockState = {
+  unlocked: boolean;
+  lockedByTitle: string | null;
+};
+
+export function lectureIsUnlocked(
+  course: CourseCheckpoint,
+  lectureId: string,
+  progress: ProgressRow[],
+  answeredByLecture: Map<string, number>,
+): LockState {
+  const lectures = [...course.lectures].sort((a, b) => a.number - b.number);
+  const index = lectures.findIndex((item) => item.id === lectureId);
+  if (index < 0) return { unlocked: false, lockedByTitle: course.title };
+  if (index === 0) {
+    const gates = course.assignments.filter(
+      (item) => item.kind === "problem_set" && item.dueBeforeLectureNumber === lectures[0]!.number,
+    );
+    for (const gate of gates) {
+      if (!assignmentDone(progress, gate.id)) {
+        return { unlocked: false, lockedByTitle: `${gate.code}: ${gate.title}` };
+      }
+    }
+    return { unlocked: true, lockedByTitle: null };
+  }
+
+  const previous = lectures[index - 1]!;
+  const fingerDone = previous.fingerAssignmentId
+    ? assignmentDone(progress, previous.fingerAssignmentId)
+    : true;
+  const prevDone =
+    lectureScore(previous, progress, answeredByLecture.get(previous.id) ?? 0, fingerDone) >= 0.999;
+  if (!prevDone) {
+    return {
+      unlocked: false,
+      lockedByTitle: `Lecture ${previous.number}: ${previous.title}`,
+    };
+  }
+
+  const current = lectures[index]!;
+  const gates = course.assignments.filter(
+    (item) => item.kind === "problem_set" && item.dueBeforeLectureNumber === current.number,
+  );
+  for (const gate of gates) {
+    if (!assignmentDone(progress, gate.id)) {
+      return { unlocked: false, lockedByTitle: `${gate.code}: ${gate.title}` };
+    }
+  }
+
+  return { unlocked: true, lockedByTitle: null };
+}
+
+export function courseIsUnlocked(
+  courseId: string,
+  courses: CourseCheckpoint[],
+  progress: ProgressRow[],
+  answeredByLecture: Map<string, number>,
+): LockState {
+  const sorted = [...courses].sort(byCurriculumOrder);
+  const target = sorted.find((item) => item.id === courseId);
+  if (!target) return { unlocked: false, lockedByTitle: null };
+
+  const onRequiredTrack = target.required || target.choiceGroup != null;
+  const slots = buildSlots(sorted, (course) =>
+    courseFraction(course, progress, answeredByLecture),
+  );
+  const requiredDone = slots.length > 0 && slots.every((slot) => slot.fraction >= 0.999);
+
+  if (onRequiredTrack) {
+    const slotIndex = slots.findIndex((slot) => slot.courseIds.includes(courseId));
+    if (slotIndex < 0) return { unlocked: false, lockedByTitle: null };
+    if (slotIndex === 0) return { unlocked: true, lockedByTitle: null };
+    const previous = slots[slotIndex - 1]!;
+    if (previous.fraction >= 0.999) return { unlocked: true, lockedByTitle: null };
+    return { unlocked: false, lockedByTitle: previous.title };
+  }
+
+  if (!requiredDone) {
+    const blocking = slots.find((slot) => slot.fraction < 0.999);
+    return {
+      unlocked: false,
+      lockedByTitle: blocking?.title ?? "the required track",
+    };
+  }
+
+  const peers = sorted.filter(
+    (item) =>
+      item.subsectionId === target.subsectionId &&
+      !item.required &&
+      item.choiceGroup == null,
+  );
+  const peerIndex = peers.findIndex((item) => item.id === courseId);
+  if (peerIndex <= 0) return { unlocked: true, lockedByTitle: null };
+  const previousPeer = peers[peerIndex - 1]!;
+  if (courseFullyDone(previousPeer, progress, answeredByLecture)) {
+    return { unlocked: true, lockedByTitle: null };
+  }
+  return { unlocked: false, lockedByTitle: previousPeer.title };
+}
+
+export function assignmentIsReachable(
+  course: CourseCheckpoint,
+  assignmentId: string,
+  progress: ProgressRow[],
+  answeredByLecture: Map<string, number>,
+): LockState {
+  const assignment = course.assignments.find((item) => item.id === assignmentId);
+  if (!assignment) return { unlocked: false, lockedByTitle: course.title };
+
+  if (assignment.kind === "finger" && assignment.lectureNumber != null) {
+    const lecture = course.lectures.find((item) => item.number === assignment.lectureNumber);
+    if (!lecture) return { unlocked: false, lockedByTitle: course.title };
+    return lectureIsUnlocked(course, lecture.id, progress, answeredByLecture);
+  }
+
+  if (assignment.dueBeforeLectureNumber != null) {
+    const lectures = [...course.lectures].sort((a, b) => a.number - b.number);
+    const prior = lectures.filter((item) => item.number < assignment.dueBeforeLectureNumber!);
+    if (prior.length === 0) return { unlocked: true, lockedByTitle: null };
+    const last = prior[prior.length - 1]!;
+    const fingerDone = last.fingerAssignmentId
+      ? assignmentDone(progress, last.fingerAssignmentId)
+      : true;
+    const done =
+      lectureScore(last, progress, answeredByLecture.get(last.id) ?? 0, fingerDone) >= 0.999;
+    if (!done) {
+      return {
+        unlocked: false,
+        lockedByTitle: `Lecture ${last.number}: ${last.title}`,
+      };
+    }
+    return { unlocked: true, lockedByTitle: null };
+  }
+
+  const lectures = [...course.lectures].sort((a, b) => a.number - b.number);
+  if (lectures.length === 0) return { unlocked: true, lockedByTitle: null };
+  const last = lectures[lectures.length - 1]!;
+  return lectureIsUnlocked(course, last.id, progress, answeredByLecture);
 }

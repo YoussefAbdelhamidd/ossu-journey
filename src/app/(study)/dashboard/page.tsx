@@ -19,6 +19,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="overflow-hidden rounded-2xl ring-1 ring-foreground/10">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/covers/hero.svg" alt="" className="h-36 w-full object-cover sm:h-44" />
+      </div>
       <NextStepCard current={data.current} />
       {data.timeline.length > 0 && data.currentCourse ? (
         <CoursePath

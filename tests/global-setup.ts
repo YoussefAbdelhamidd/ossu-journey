@@ -1,6 +1,8 @@
 import { execSync } from "node:child_process";
 
-const databaseUrl = "postgresql://ossu:ossu@127.0.0.1:5432/ossu_test?sslmode=require";
+const databaseUrl =
+  process.env.TEST_DATABASE_URL ??
+  "postgresql://ossu:ossu@127.0.0.1:5432/ossu_test?sslmode=disable";
 
 const env = {
   ...process.env,

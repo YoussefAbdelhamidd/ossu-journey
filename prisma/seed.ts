@@ -1,7 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
-import { courseDetails, sections } from "./seed-data";
+import { courseDetails, readings, sections } from "./seed-data";
+import {
+  COURSE_COVERS,
+  SECTION_COVERS,
+  certificateFor,
+} from "./seed-data/readings";
 import { estimatedHours } from "./seed-data/types";
 
 loadEnvFile();
@@ -111,12 +116,14 @@ async function main() {
             title: section.title,
             summary: section.summary,
             order: sectionIndex,
+            coverImage: SECTION_COVERS[section.id] ?? null,
           },
           create: {
             id: section.id,
             title: section.title,
             summary: section.summary,
             order: sectionIndex,
+            coverImage: SECTION_COVERS[section.id] ?? null,
           },
         });
 
@@ -142,6 +149,7 @@ async function main() {
 
           for (const [courseIndex, course] of subsection.courses.entries()) {
             const hours = estimatedHours(course);
+            const cert = certificateFor(course);
             await tx.course.upsert({
               where: { id: course.id },
               update: {
@@ -164,6 +172,9 @@ async function main() {
                 required: course.required ?? true,
                 choiceGroup: course.choiceGroup ?? null,
                 videoTodo: course.videoTodo ?? null,
+                coverImage: COURSE_COVERS[course.id] ?? null,
+                offersCertificate: cert.offersCertificate,
+                certificateLabel: cert.certificateLabel,
                 order: courseIndex,
               },
               create: {
@@ -187,6 +198,9 @@ async function main() {
                 required: course.required ?? true,
                 choiceGroup: course.choiceGroup ?? null,
                 videoTodo: course.videoTodo ?? null,
+                coverImage: COURSE_COVERS[course.id] ?? null,
+                offersCertificate: cert.offersCertificate,
+                certificateLabel: cert.certificateLabel,
                 order: courseIndex,
               },
             });
@@ -297,15 +311,42 @@ async function main() {
     { timeout: 120_000 },
   );
 
-  const [courseCount, lectureCount, questionCount, assignmentCount] = await Promise.all([
-    prisma.course.count(),
-    prisma.lecture.count(),
-    prisma.question.count(),
-    prisma.assignment.count(),
-  ]);
+  for (const [index, reading] of readings.entries()) {
+    await prisma.reading.upsert({
+      where: { id: reading.id },
+      update: {
+        courseId: reading.courseId,
+        title: reading.title,
+        author: reading.author ?? null,
+        kind: reading.kind,
+        url: reading.url,
+        summary: reading.summary ?? null,
+        order: index,
+      },
+      create: {
+        id: reading.id,
+        courseId: reading.courseId,
+        title: reading.title,
+        author: reading.author ?? null,
+        kind: reading.kind,
+        url: reading.url,
+        summary: reading.summary ?? null,
+        order: index,
+      },
+    });
+  }
+
+  const [courseCount, lectureCount, questionCount, assignmentCount, readingCount] =
+    await Promise.all([
+      prisma.course.count(),
+      prisma.lecture.count(),
+      prisma.question.count(),
+      prisma.assignment.count(),
+      prisma.reading.count(),
+    ]);
 
   console.log(
-    `Seeded ${courseCount} courses, ${lectureCount} lectures, ${questionCount} questions, ${assignmentCount} assignments.`,
+    `Seeded ${courseCount} courses, ${lectureCount} lectures, ${questionCount} questions, ${assignmentCount} assignments, ${readingCount} readings.`,
   );
   console.log(`Learner: ${learnerEmail}`);
   console.log(`Tutor:   ${tutorEmail}`);

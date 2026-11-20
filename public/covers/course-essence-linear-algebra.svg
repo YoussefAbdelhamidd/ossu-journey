@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" role="img" aria-label="Essence of Linear Algebra cover">
+  <rect width="640" height="800" fill="#1a2744"/>
+  <g stroke="#7ec8ff" stroke-width="4" fill="none">
+    <line x1="120" y1="400" x2="520" y2="400"/>
+    <line x1="320" y1="180" x2="320" y2="620"/>
+    <line x1="320" y1="400" x2="460" y2="260"/>
+    <line x1="320" y1="400" x2="470" y2="470"/>
+  </g>
+  <circle cx="460" cy="260" r="10" fill="#d7a15e"/>
+  <circle cx="470" cy="470" r="10" fill="#9ec9c4"/>
+  <text x="70" y="700" fill="#f6f3ea" font-family="Georgia, serif" font-size="40">Essence of</text>
+  <text x="70" y="750" fill="#f6f3ea" font-family="Georgia, serif" font-size="40">Linear Algebra</text>
+</svg>

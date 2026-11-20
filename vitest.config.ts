@@ -9,8 +9,12 @@ export default defineConfig({
     hookTimeout: 180_000,
     testTimeout: 30_000,
     env: {
-      DATABASE_URL: "postgresql://ossu:ossu@127.0.0.1:5432/ossu_test?sslmode=require",
-      DIRECT_URL: "postgresql://ossu:ossu@127.0.0.1:5432/ossu_test?sslmode=require",
+      DATABASE_URL:
+        process.env.TEST_DATABASE_URL ??
+        "postgresql://ossu:ossu@127.0.0.1:5432/ossu_test?sslmode=disable",
+      DIRECT_URL:
+        process.env.TEST_DATABASE_URL ??
+        "postgresql://ossu:ossu@127.0.0.1:5432/ossu_test?sslmode=disable",
       AUTH_SECRET: "test-secret-test-secret-test-secret-123",
       LEARNER_EMAIL: "momen@ossu.local",
       LEARNER_PASSWORD: "study-at-dawn",

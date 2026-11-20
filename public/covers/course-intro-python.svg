@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" role="img" aria-label="MIT 6.100L cover">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0e6b66"/>
+      <stop offset="100%" stop-color="#0a3f3d"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="800" fill="url(#g)"/>
+  <rect x="70" y="180" width="500" height="320" rx="24" fill="#fffaf3" opacity="0.95"/>
+  <text x="110" y="280" fill="#0a3f3d" font-family="ui-monospace, monospace" font-size="36">def learn():</text>
+  <text x="140" y="340" fill="#0e6b66" font-family="ui-monospace, monospace" font-size="32">return "6.100L"</text>
+  <text x="110" y="420" fill="#9c4a32" font-family="ui-monospace, monospace" font-size="28"># Ana Bell · MIT</text>
+  <text x="70" y="620" fill="#f6f3ea" font-family="Georgia, serif" font-size="48">Intro Python</text>
+  <text x="70" y="670" fill="#d7ebe6" font-family="system-ui, sans-serif" font-size="24">MIT 6.100L Fall 2022</text>
+</svg>

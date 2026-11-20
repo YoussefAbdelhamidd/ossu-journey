@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   courseFraction,
+  courseIsUnlocked,
   findCurrentItem,
+  lectureIsUnlocked,
   summarizeTrack,
   type CourseCheckpoint,
 } from "@/lib/progress";
@@ -151,7 +153,11 @@ describe("required-track progress", () => {
       [{ targetType: "lecture", targetId: "lec-1", status: "watched" }],
       new Map(),
     );
-    expect(current).toMatchObject({ kind: "lecture", step: "finger", href: "/lectures/lec-1#finger" });
+    expect(current).toMatchObject({
+      kind: "lecture",
+      step: "finger",
+      href: "/courses/intro?lecture=lec-1#finger",
+    });
   });
 
   it("points at unanswered checks after the finger exercise is done", () => {
@@ -178,7 +184,100 @@ describe("required-track progress", () => {
     expect(current).toMatchObject({
       kind: "lecture",
       step: "questions",
-      href: "/lectures/lec-1#checks",
+      href: "/courses/intro?lecture=lec-1#checks",
     });
+  });
+});
+
+describe("sequential locks", () => {
+  const track = [
+    course({ id: "a", estimatedHours: 100, courseOrder: 0 }),
+    course({ id: "b", estimatedHours: 100, courseOrder: 1 }),
+    course({
+      id: "c-lang",
+      estimatedHours: 40,
+      required: false,
+      choiceGroup: "lang",
+      courseOrder: 2,
+    }),
+    course({
+      id: "java-lang",
+      estimatedHours: 40,
+      required: false,
+      choiceGroup: "lang",
+      courseOrder: 3,
+    }),
+    course({
+      id: "elective-1",
+      estimatedHours: 50,
+      required: false,
+      courseOrder: 0,
+      sectionOrder: 2,
+      subsectionId: "adv",
+      subsectionOrder: 0,
+    }),
+    course({
+      id: "elective-2",
+      estimatedHours: 50,
+      required: false,
+      courseOrder: 1,
+      sectionOrder: 2,
+      subsectionId: "adv",
+      subsectionOrder: 0,
+    }),
+  ];
+
+  const withLectures = course({
+    id: "video-course",
+    lectures: [
+      { id: "lec-b-1", number: 1, title: "One", questionCount: 0, fingerAssignmentId: null },
+      { id: "lec-b-2", number: 2, title: "Two", questionCount: 0, fingerAssignmentId: null },
+    ],
+  });
+
+  it("keeps later required courses locked until the previous slot is done", () => {
+    expect(courseIsUnlocked("a", track, [], new Map()).unlocked).toBe(true);
+    expect(courseIsUnlocked("b", track, [], new Map())).toMatchObject({
+      unlocked: false,
+      lockedByTitle: "a",
+    });
+    const afterA = [{ targetType: "course", targetId: "a", status: "completed" }];
+    expect(courseIsUnlocked("b", track, afterA, new Map()).unlocked).toBe(true);
+    expect(courseIsUnlocked("c-lang", track, afterA, new Map()).unlocked).toBe(false);
+  });
+
+  it("opens both choose-one options together after the previous slot", () => {
+    const progress = [
+      { targetType: "course", targetId: "a", status: "completed" },
+      { targetType: "course", targetId: "b", status: "completed" },
+    ];
+    expect(courseIsUnlocked("c-lang", track, progress, new Map()).unlocked).toBe(true);
+    expect(courseIsUnlocked("java-lang", track, progress, new Map()).unlocked).toBe(true);
+  });
+
+  it("locks electives until the required track is finished, then by subject order", () => {
+    expect(courseIsUnlocked("elective-1", track, [], new Map()).unlocked).toBe(false);
+    const requiredDone = [
+      { targetType: "course", targetId: "a", status: "completed" },
+      { targetType: "course", targetId: "b", status: "completed" },
+      { targetType: "course", targetId: "c-lang", status: "completed" },
+    ];
+    expect(courseIsUnlocked("elective-1", track, requiredDone, new Map()).unlocked).toBe(true);
+    expect(courseIsUnlocked("elective-2", track, requiredDone, new Map())).toMatchObject({
+      unlocked: false,
+      lockedByTitle: "elective-1",
+    });
+  });
+
+  it("locks later lectures until the previous lecture is complete", () => {
+    expect(lectureIsUnlocked(withLectures, "lec-b-1", [], new Map()).unlocked).toBe(true);
+    expect(lectureIsUnlocked(withLectures, "lec-b-2", [], new Map())).toMatchObject({
+      unlocked: false,
+      lockedByTitle: "Lecture 1: One",
+    });
+    const afterFirst = [
+      { targetType: "lecture", targetId: "lec-b-1", status: "completed" },
+    ];
+    expect(lectureIsUnlocked(withLectures, "lec-b-2", afterFirst, new Map()).unlocked).toBe(true);
   });
 });

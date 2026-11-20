@@ -1,9 +1,10 @@
 import { essenceLinearAlgebra } from "./essence-linear-algebra";
 import { mit6100l } from "./mit-6100l";
 import { sections } from "./curriculum";
+import { readings } from "./readings";
 import type { CourseDetail } from "./types";
 
-export { sections };
+export { sections, readings };
 
 /**
  * Register a course's lectures here after you add a file next to this one.

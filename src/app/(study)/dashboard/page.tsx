@@ -5,7 +5,7 @@ import { JourneyMeter } from "@/components/journey-meter";
 import { NextStepCard } from "@/components/next-step-card";
 import { StatGrid } from "@/components/stat-grid";
 import { Badge } from "@/components/ui/badge";
-import { formatHours } from "@/lib/progress";
+import { formatHours, formatPercent } from "@/lib/progress";
 import { getSession } from "@/lib/session";
 import { getDashboard } from "@/lib/study";
 import { redirect } from "next/navigation";
@@ -18,26 +18,38 @@ export default async function DashboardPage() {
   const data = await getDashboard(session);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="overflow-hidden rounded-2xl ring-1 ring-foreground/10">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/covers/hero.svg" alt="" className="h-36 w-full object-cover sm:h-44" />
-      </div>
-      <NextStepCard current={data.current} />
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {data.greeting}, {data.learner.name}
+          </p>
+          <h1 className="mt-1 text-3xl tracking-tight text-[#0a3f3d] sm:text-4xl">Keep the course moving</h1>
+        </div>
+        <p className="text-sm tabular-nums text-muted-foreground">
+          Required track {formatPercent(data.track.percent)}%
+        </p>
+      </header>
+
+      <NextStepCard
+        current={data.current}
+        courseCover={data.currentCourse?.coverImage}
+        coursePercent={data.currentCourse?.percent}
+      />
+
       {data.timeline.length > 0 && data.currentCourse ? (
         <CoursePath
           courseTitle={data.currentCourse.title}
+          courseHref={`/courses/${data.currentCourse.id}`}
           percent={data.currentCourse.percent}
           items={data.timeline}
         />
       ) : null}
-      <section className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-        <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/10 sm:p-7">
-          <p className="text-sm text-muted-foreground">
-            {data.greeting}, {data.learner.name}
-          </p>
-          <h1 className="mt-1 text-3xl text-[#0a3f3d]">Today&apos;s stretch of the degree</h1>
-          <div className="mt-6">
+
+      <section className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+        <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6">
+          <p className="text-xs tracking-[0.14em] text-[#0e6b66] uppercase">Degree progress</p>
+          <div className="mt-4">
             <JourneyMeter
               percent={data.track.percent}
               completedHours={data.track.completedHours}
@@ -47,39 +59,22 @@ export default async function DashboardPage() {
               pastMidpoint={data.track.pastMidpoint}
             />
           </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Advanced electives are on the curriculum and do not move this bar. The security
-            language courses count as one slot: finish either C/C++ or Java.
-          </p>
         </div>
+
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl bg-[#0a3f3d] p-5 text-[#f6f3ea]">
-            <p className="text-xs tracking-[0.16em] text-[#d7ebe6] uppercase">Morning block</p>
-            <p className="mt-2 font-sans text-2xl leading-snug font-semibold">{data.morning.label}</p>
-            <p className="text-sm text-[#d7ebe6]">Africa/Cairo</p>
-            <p className="mt-3 text-sm">
-              {data.morning.openNow
-                ? "The window is open."
-                : "Outside the window right now."}{" "}
-              {data.morning.studiedInWindowToday
-                ? "Today already has a mark inside 7:00–9:00."
-                : "A stronger day-mark means the study landed inside the window."}
-            </p>
-            <div className="mt-4">
-              <CheckInButton studiedToday={data.streak.studiedToday} />
-            </div>
-          </div>
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
-            <div className="flex items-baseline justify-between">
-              <p className="font-sans text-3xl leading-tight font-semibold tabular-nums">{data.streak.current}</p>
-              <p className="text-sm text-muted-foreground">best {data.streak.best}</p>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-sans text-3xl font-semibold tabular-nums text-[#0a3f3d]">
+                {data.streak.current}
+              </p>
+              <p className="text-xs text-muted-foreground">best {data.streak.best}</p>
             </div>
-            <p className="text-sm text-muted-foreground">day study streak</p>
+            <p className="text-sm text-muted-foreground">day streak · Cairo</p>
             <ol className="mt-4 grid grid-cols-7 gap-1.5">
-              {data.streak.days.map((day) => (
+              {data.streak.days.slice(-7).map((day) => (
                 <li key={day.date} className="text-center">
                   <span
-                    className={`mx-auto block size-6 rounded-full ${
+                    className={`mx-auto block size-5 rounded-full ${
                       day.inWindow
                         ? "bg-[#0e6b66]"
                         : day.studied
@@ -93,11 +88,29 @@ export default async function DashboardPage() {
               ))}
             </ol>
           </div>
+
+          <div className="rounded-2xl bg-[#0a3f3d] p-5 text-[#f6f3ea]">
+            <p className="text-xs tracking-[0.14em] text-[#d7ebe6] uppercase">Morning block</p>
+            <p className="mt-2 font-sans text-xl font-semibold">{data.morning.label}</p>
+            <p className="mt-1 text-sm text-[#d7ebe6]">
+              {data.morning.openNow ? "Window is open now." : "Outside 7:00–9:00 right now."}
+            </p>
+            <div className="mt-4">
+              <CheckInButton studiedToday={data.streak.studiedToday} />
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl text-[#0a3f3d]">Required track</h2>
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-xl text-[#0a3f3d]">Track checklist</h2>
+          <p className="text-xs text-muted-foreground">
+            {data.track.pastMidpoint
+              ? "Past midpoint"
+              : `${formatHours(data.track.hoursUntilMidpoint)} to midpoint`}
+          </p>
+        </div>
         <StatGrid
           items={[
             {
@@ -113,16 +126,10 @@ export default async function DashboardPage() {
               total: data.counts.lecturesTotal,
             },
             {
-              label: "Questions answered",
+              label: "Checks",
               value: `${data.counts.questionsDone} / ${data.counts.questionsTotal}`,
               done: data.counts.questionsDone,
               total: data.counts.questionsTotal,
-            },
-            {
-              label: "Finger exercises",
-              value: `${data.counts.fingersDone} / ${data.counts.fingersTotal}`,
-              done: data.counts.fingersDone,
-              total: data.counts.fingersTotal,
             },
             {
               label: "Problem sets",
@@ -130,23 +137,18 @@ export default async function DashboardPage() {
               done: data.counts.problemSetsDone,
               total: data.counts.problemSetsTotal,
             },
-            {
-              label: "Tutor notes",
-              value: String(data.counts.feedbackReceived),
-            },
-            {
-              label: "To the midpoint",
-              value: data.track.pastMidpoint ? "Past it" : formatHours(data.track.hoursUntilMidpoint),
-            },
           ]}
         />
       </section>
 
       <section>
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-2xl">The path</h2>
-          <Link href="/curriculum" className="text-sm text-[#0e6b66] underline-offset-4 hover:underline">
-            Full curriculum
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="text-xl text-[#0a3f3d]">Curriculum map</h2>
+          <Link
+            href="/curriculum"
+            className="text-sm text-[#0e6b66] underline-offset-4 hover:underline"
+          >
+            Open full list
           </Link>
         </div>
         <ul className="grid gap-3 sm:grid-cols-2">
@@ -156,27 +158,45 @@ export default async function DashboardPage() {
               required.length === 0
                 ? 0
                 : required.reduce((sum, course) => sum + course.percent, 0) / required.length;
+            const isCurrentGroup = group.courses.some(
+              (course) => course.id === data.current?.courseId,
+            );
             return (
-              <li key={group.id} className="rounded-2xl bg-card p-4 ring-1 ring-foreground/10">
+              <li
+                key={group.id}
+                className={`rounded-2xl bg-card p-4 ring-1 ${
+                  isCurrentGroup ? "ring-[#0e6b66]/50" : "ring-foreground/10"
+                }`}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground">{group.sectionTitle}</p>
-                    <h3 className="text-lg">{group.title}</h3>
+                    <h3 className="text-lg text-[#0a3f3d]">{group.title}</h3>
                   </div>
                   <Badge variant="outline">{Math.round(average)}%</Badge>
                 </div>
                 <ul className="mt-3 space-y-2">
-                  {group.courses.slice(0, 4).map((course) => (
+                  {group.courses.slice(0, 3).map((course) => (
                     <li key={course.id}>
-                      <Link href={`/courses/${course.id}`} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="truncate">{course.title}</span>
-                        <span className="shrink-0 tabular-nums text-muted-foreground">{course.percent}%</span>
+                      <Link
+                        href={`/courses/${course.id}`}
+                        className="flex items-center justify-between gap-3 text-sm"
+                      >
+                        <span className="truncate">
+                          {course.id === data.current?.courseId ? (
+                            <span className="mr-1 text-[#0e6b66]">●</span>
+                          ) : null}
+                          {course.title}
+                        </span>
+                        <span className="shrink-0 tabular-nums text-muted-foreground">
+                          {course.percent}%
+                        </span>
                       </Link>
                     </li>
                   ))}
-                  {group.courses.length > 4 ? (
+                  {group.courses.length > 3 ? (
                     <li className="text-xs text-muted-foreground">
-                      + {group.courses.length - 4} more
+                      + {group.courses.length - 3} more
                     </li>
                   ) : null}
                 </ul>

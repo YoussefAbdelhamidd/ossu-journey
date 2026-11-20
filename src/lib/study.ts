@@ -629,6 +629,7 @@ export const getDashboard = cache(async function getDashboard(user: SessionUser)
       ? {
           id: currentCourse.id,
           title: currentCourse.title,
+          coverImage: courses.find((course) => course.id === currentCourse.id)?.coverImage ?? null,
           percent: Math.round(fractionOf(currentCourse) * 1000) / 10,
           tally: courseTally,
         }

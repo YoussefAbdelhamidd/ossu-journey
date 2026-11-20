@@ -55,7 +55,7 @@ export function CoursePath({
           style={{ width: `${Math.min(100, percent)}%` }}
         />
       </div>
-      <ol className="mt-4 flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-13 sm:overflow-visible sm:[grid-template-columns:repeat(13,minmax(0,1fr))]">
+      <ol className="mt-4 flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:overflow-visible sm:[grid-template-columns:repeat(13,minmax(0,1fr))]">
         {items.map((item) => (
           <li key={item.id} className="shrink-0 sm:shrink">
             {item.state === "locked" ? (

@@ -53,12 +53,11 @@ export function JourneyMeter({
         <span className="text-right">Track done</span>
       </div>
       {midpointTitle ? (
-        <p className="mt-3 text-sm leading-relaxed">
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           {pastMidpoint
-            ? `You are past the midpoint (${formatHours(completedHours - totalHours / 2)} beyond halfway). `
-            : `${formatHours(hoursUntilMidpoint)} left until the midpoint. `}
-          That point lands in <span className="font-medium">{midpointTitle}</span>, where this plan
-          says to start US remote applications.
+            ? `Past the midpoint · `
+            : `${formatHours(hoursUntilMidpoint)} to midpoint · `}
+          lands in <span className="font-medium text-foreground">{midpointTitle}</span>
         </p>
       ) : null}
     </div>

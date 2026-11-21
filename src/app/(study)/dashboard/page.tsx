@@ -104,7 +104,7 @@ export default async function DashboardPage() {
 
       {library ? (
         <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <MixMeter target={library.mix} actual={library.actualMix} />
+          <MixMeter actual={library.actualMix} completedTotal={library.completedTotal} />
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
             <p className="text-xs tracking-[0.14em] text-[#0e6b66] uppercase">Personal library</p>
             <p className="mt-2 text-3xl font-semibold tabular-nums text-[#0a3f3d]">

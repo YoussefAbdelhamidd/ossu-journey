@@ -59,7 +59,7 @@ export function episodeUnlocked(
 
 export async function listLibrary(user: SessionUser) {
   requireLearner(user);
-  const [groups, mixRows, progress] = await Promise.all([
+  const [groups, progress, ossuLectureProgress] = await Promise.all([
     prisma.libraryGroup.findMany({
       where: { ownerId: user.id },
       orderBy: [{ category: "asc" }, { order: "asc" }, { createdAt: "asc" }],
@@ -67,25 +67,21 @@ export async function listLibrary(user: SessionUser) {
         _count: { select: { episodes: true, goals: true } },
       },
     }),
-    prisma.userContentMix.findMany({ where: { userId: user.id } }),
     prisma.progress.findMany({
       where: {
         userId: user.id,
         targetType: { in: ["library_episode", "library_group"] },
       },
     }),
+    prisma.progress.findMany({
+      where: {
+        userId: user.id,
+        targetType: "lecture",
+        status: { in: ["watched", "completed"] },
+      },
+      select: { targetId: true },
+    }),
   ]);
-
-  const mix =
-    mixRows.length > 0
-      ? LIBRARY_CATEGORIES.map((category) => ({
-          category,
-          percent: mixRows.find((row) => row.category === category)?.percent ?? 0,
-        }))
-      : LIBRARY_CATEGORIES.map((category) => ({
-          category,
-          percent: DEFAULT_CONTENT_MIX[category],
-        }));
 
   const episodeIdsByCategory = new Map<string, string[]>();
   const episodeGroups = await prisma.libraryEpisode.findMany({
@@ -101,6 +97,12 @@ export async function listLibrary(user: SessionUser) {
   const actual: Record<string, number> = {};
   let completedTotal = 0;
   for (const category of LIBRARY_CATEGORIES) {
+    if (category === "PROGRAMS") {
+      const completed = ossuLectureProgress.length;
+      actual[category] = completed;
+      completedTotal += completed;
+      continue;
+    }
     const ids = new Set(episodeIdsByCategory.get(category) ?? []);
     const completed = progress.filter(
       (row) =>
@@ -135,7 +137,6 @@ export async function listLibrary(user: SessionUser) {
       episodeCount: group._count.episodes,
       goalCount: group._count.goals,
     })),
-    mix,
     actualMix,
     completedTotal,
   };

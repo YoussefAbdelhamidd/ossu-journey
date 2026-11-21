@@ -27,6 +27,8 @@ run("npx prisma generate");
 
 if (process.env.DATABASE_URL) {
   run("npx prisma migrate deploy");
+  // Upsert curriculum + Momen's library tracks (passwords from env; keeps progress).
+  run("npx tsx prisma/seed.ts");
 } else {
   console.log("DATABASE_URL is not set; skipping prisma migrate deploy.");
 }

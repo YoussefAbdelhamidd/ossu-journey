@@ -101,7 +101,7 @@ export default async function LibraryPage() {
             },
           )}
         </div>
-        <MixMeter target={data.mix} actual={data.actualMix} />
+        <MixMeter actual={data.actualMix} completedTotal={data.completedTotal} />
       </div>
     </div>
   );

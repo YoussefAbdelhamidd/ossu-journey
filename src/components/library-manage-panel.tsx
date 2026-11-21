@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -26,14 +26,10 @@ type GroupSummary = {
   goalCount: number;
 };
 
-type MixRow = { category: string; percent: number };
-
 export function LibraryManagePanel({
   groups: initialGroups,
-  mix: initialMix,
 }: {
   groups: GroupSummary[];
-  mix: MixRow[];
 }) {
   const router = useRouter();
   const [groups, setGroups] = useState(initialGroups);
@@ -48,16 +44,10 @@ export function LibraryManagePanel({
   const [episodeUrl, setEpisodeUrl] = useState("");
   const [episodeTitle, setEpisodeTitle] = useState("");
   const [goalsText, setGoalsText] = useState("");
-  const [mix, setMix] = useState(initialMix);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-
-  const mixTotal = useMemo(
-    () => mix.reduce((sum, row) => sum + Number(row.percent || 0), 0),
-    [mix],
-  );
 
   useEffect(() => {
     if (selectedId) void loadGoals(selectedId);
@@ -70,10 +60,8 @@ export function LibraryManagePanel({
     if (!response.ok) return;
     const data = (await response.json()) as {
       groups: GroupSummary[];
-      mix: MixRow[];
     };
     setGroups(data.groups);
-    setMix(data.mix);
     router.refresh();
   }
 
@@ -464,60 +452,10 @@ export function LibraryManagePanel({
           </section>
         ) : null}
 
-        <section className="rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
-          <h2 className="text-lg font-semibold text-[#0a3f3d]">Content mix targets</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Must add up to 100%.</p>
-          <ul className="mt-4 space-y-3">
-            {LIBRARY_CATEGORIES.map((cat) => {
-              const row = mix.find((item) => item.category === cat);
-              return (
-                <li key={cat} className="flex items-center gap-3">
-                  <Label className="w-36">{CATEGORY_LABELS[cat]}</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    className="w-24"
-                    value={row?.percent ?? 0}
-                    onChange={(e) => {
-                      const percent = Number(e.target.value);
-                      setMix((prev) =>
-                        prev.map((item) =>
-                          item.category === cat ? { ...item, percent } : item,
-                        ),
-                      );
-                    }}
-                  />
-                  <span className="text-sm text-muted-foreground">%</span>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-2 text-sm tabular-nums text-muted-foreground">Total {mixTotal}%</p>
-          <Button
-            className="mt-3"
-            disabled={pending || mixTotal !== 100}
-            onClick={async () => {
-              setPending(true);
-              setError(null);
-              const response = await fetch("/api/library/mix", {
-                method: "PUT",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ mix }),
-              });
-              const data = (await response.json().catch(() => ({}))) as { error?: string };
-              setPending(false);
-              if (!response.ok) {
-                setError(data.error ?? "Could not save mix.");
-                return;
-              }
-              setMessage("Mix saved.");
-              await refresh();
-            }}
-          >
-            Save mix
-          </Button>
-        </section>
+        <p className="text-sm text-muted-foreground">
+          Content mix on the dashboard updates automatically from what you watch — no fixed
+          targets.
+        </p>
 
         {message ? <p className="text-sm text-[#0e6b66]">{message}</p> : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}

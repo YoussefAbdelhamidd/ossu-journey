@@ -22,7 +22,7 @@ export default async function LibraryManagePage() {
           and share a copy link with friends. Only you can edit your groups.
         </p>
       </header>
-      <LibraryManagePanel groups={data.groups} mix={data.mix} />
+      <LibraryManagePanel groups={data.groups} />
     </div>
   );
 }

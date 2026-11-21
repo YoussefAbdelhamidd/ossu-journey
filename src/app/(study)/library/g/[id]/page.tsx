@@ -57,10 +57,10 @@ export default async function LibraryGroupPage({
           </div>
         </div>
         <Link
-          href="/library/manage"
-          className="text-sm text-[#0e6b66] underline-offset-2 hover:underline"
+          href={`/library/manage?g=${group.id}`}
+          className="rounded-lg px-3 py-2 text-sm text-[#0e6b66] ring-1 ring-foreground/10 hover:bg-secondary"
         >
-          Edit in control panel
+          Edit / add / delete
         </Link>
       </header>
 

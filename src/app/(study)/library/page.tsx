@@ -60,11 +60,11 @@ export default async function LibraryPage() {
                   ) : (
                     <ul className="mt-3 grid gap-3 sm:grid-cols-2">
                       {groups.map((group) => (
-                        <li key={group.id}>
-                          <Link
-                            href={`/library/g/${group.id}`}
-                            className="flex gap-3 rounded-2xl bg-card p-3 ring-1 ring-foreground/10 hover:ring-[#0e6b66]/40"
-                          >
+                        <li
+                          key={group.id}
+                          className="rounded-2xl bg-card p-3 ring-1 ring-foreground/10"
+                        >
+                          <div className="flex gap-3">
                             <div
                               className="size-16 shrink-0 rounded-xl bg-[#efe4d2] bg-cover bg-center"
                               style={
@@ -73,7 +73,7 @@ export default async function LibraryPage() {
                                   : undefined
                               }
                             />
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-[#0a3f3d]">
                                 {group.title}
                               </p>
@@ -92,7 +92,21 @@ export default async function LibraryPage() {
                                 ) : null}
                               </div>
                             </div>
-                          </Link>
+                          </div>
+                          <div className="mt-3 flex gap-2">
+                            <Link
+                              href={`/library/g/${group.id}`}
+                              className="rounded-lg bg-[#0e6b66] px-3 py-1.5 text-sm text-white hover:bg-[#0a3f3d]"
+                            >
+                              Open
+                            </Link>
+                            <Link
+                              href={`/library/manage?g=${group.id}`}
+                              className="rounded-lg px-3 py-1.5 text-sm text-[#0e6b66] ring-1 ring-foreground/10 hover:bg-secondary"
+                            >
+                              Edit
+                            </Link>
+                          </div>
                         </li>
                       ))}
                     </ul>

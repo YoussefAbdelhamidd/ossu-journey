@@ -324,10 +324,78 @@ async function refreshLecture(userId: string, lectureId: string) {
 }
 
 export async function setProgress(user: SessionUser, input: {
-  targetType: "lecture" | "assignment" | "course";
+  targetType: "lecture" | "assignment" | "course" | "library_episode" | "library_group";
   targetId: string;
   action: "watched" | "completed" | "clear";
 }) {
+  if (input.targetType === "library_episode" || input.targetType === "library_group") {
+    if (user.role !== "LEARNER") throw new ApiError(403, "Learners only.");
+    if (input.targetType === "library_group") {
+      const group = await prisma.libraryGroup.findUnique({ where: { id: input.targetId } });
+      if (!group || group.ownerId !== user.id) throw new ApiError(404, "Group not found.");
+      if (input.action === "watched") {
+        throw new ApiError(400, "Groups are marked complete, not watched.");
+      }
+    } else {
+      const episode = await prisma.libraryEpisode.findUnique({
+        where: { id: input.targetId },
+        include: { group: { include: { episodes: { orderBy: { order: "asc" } } } } },
+      });
+      if (!episode || episode.group.ownerId !== user.id) {
+        throw new ApiError(404, "Episode not found.");
+      }
+      if (input.action !== "clear") {
+        const { episodeUnlocked } = await import("./library");
+        const progress = await prisma.progress.findMany({
+          where: {
+            userId: user.id,
+            targetType: "library_episode",
+            targetId: { in: episode.group.episodes.map((e) => e.id) },
+          },
+        });
+        const index = episode.group.episodes.findIndex((e) => e.id === episode.id);
+        const lock = episodeUnlocked(episode.group, index, progress, episode.group.episodes);
+        if (!lock.unlocked) {
+          throw new ApiError(
+            403,
+            episode.group.isCourse && !episode.group.startedAt
+              ? "Start this course before watching episodes."
+              : `Finish ${lock.lockedByTitle} first.`,
+          );
+        }
+      }
+    }
+
+    if (input.action === "clear") {
+      await prisma.progress.deleteMany({
+        where: { userId: user.id, targetType: input.targetType, targetId: input.targetId },
+      });
+    } else {
+      await prisma.progress.upsert({
+        where: {
+          userId_targetType_targetId: {
+            userId: user.id,
+            targetType: input.targetType,
+            targetId: input.targetId,
+          },
+        },
+        update: {
+          status: input.action === "completed" ? "completed" : "watched",
+          manual: input.action === "completed",
+        },
+        create: {
+          userId: user.id,
+          targetType: input.targetType,
+          targetId: input.targetId,
+          status: input.action === "completed" ? "completed" : "watched",
+          manual: input.action === "completed",
+        },
+      });
+    }
+    await recordStudy(user.id);
+    return { ok: true };
+  }
+
   const courses = await loadCourses();
   const state = await learnerState(user.id);
   const answered = answeredByLecture(courses, state.answers);

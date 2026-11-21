@@ -2,9 +2,11 @@ import Link from "next/link";
 import { CheckInButton } from "@/components/check-in-button";
 import { CoursePath } from "@/components/course-path";
 import { JourneyMeter } from "@/components/journey-meter";
+import { MixMeter } from "@/components/mix-meter";
 import { NextStepCard } from "@/components/next-step-card";
 import { StatGrid } from "@/components/stat-grid";
 import { Badge } from "@/components/ui/badge";
+import { listLibrary } from "@/lib/library";
 import { formatHours, formatPercent } from "@/lib/progress";
 import { getSession } from "@/lib/session";
 import { getDashboard } from "@/lib/study";
@@ -16,6 +18,8 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const data = await getDashboard(session);
+  const library =
+    session.role === "LEARNER" ? await listLibrary(session).catch(() => null) : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -24,10 +28,10 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted-foreground">
             {data.greeting}, {data.learner.name}
           </p>
-          <h1 className="mt-1 text-3xl tracking-tight text-[#0a3f3d] sm:text-4xl">Keep the course moving</h1>
+          <h1 className="mt-1 text-3xl tracking-tight text-[#0a3f3d] sm:text-4xl">Keep learning moving</h1>
         </div>
         <p className="text-sm tabular-nums text-muted-foreground">
-          Required track {formatPercent(data.track.percent)}%
+          Programs track {formatPercent(data.track.percent)}%
         </p>
       </header>
 
@@ -98,9 +102,28 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      {library ? (
+        <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <MixMeter target={library.mix} actual={library.actualMix} />
+          <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
+            <p className="text-xs tracking-[0.14em] text-[#0e6b66] uppercase">Personal library</p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums text-[#0a3f3d]">
+              {library.groups.length}
+            </p>
+            <p className="text-sm text-muted-foreground">groups you own</p>
+            <Link
+              href="/library"
+              className="mt-4 inline-block text-sm text-[#0e6b66] underline-offset-4 hover:underline"
+            >
+              Open library
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-xl text-[#0a3f3d]">Track checklist</h2>
+          <h2 className="text-xl text-[#0a3f3d]">Programs checklist</h2>
           <p className="text-xs text-muted-foreground">
             {data.track.pastMidpoint
               ? "Past midpoint"

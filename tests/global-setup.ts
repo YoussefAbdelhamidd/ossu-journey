@@ -10,7 +10,7 @@ const env = {
   DIRECT_URL: databaseUrl,
   AUTH_SECRET: "test-secret-test-secret-test-secret-123",
   LEARNER_EMAIL: "momen@ossu.local",
-  LEARNER_PASSWORD: "study-at-dawn",
+  LEARNER_PASSWORD: "Vdlz1L4P5icHj4aQW-Lr",
   LEARNER_NAME: "Momen",
   TUTOR_EMAIL: "tutor@ossu.local",
   TUTOR_PASSWORD: "review-desk",

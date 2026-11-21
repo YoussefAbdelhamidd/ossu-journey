@@ -13,7 +13,7 @@ export function ProgressToggle({
   doneLabel,
   variant = "default",
 }: {
-  targetType: "lecture" | "assignment" | "course";
+  targetType: "lecture" | "assignment" | "course" | "library_episode" | "library_group";
   targetId: string;
   action: "watched" | "completed";
   done: boolean;

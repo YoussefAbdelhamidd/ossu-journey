@@ -58,27 +58,34 @@ export function YoutubePlayer({
   youtubeId,
   title,
   startSeconds,
+  playbackPath,
 }: {
   lectureId: string;
   youtubeId: string;
   title: string;
   startSeconds: number;
+  /** Defaults to OSSU lecture playback API. */
+  playbackPath?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const lastSaved = useRef(startSeconds);
   const lectureIdRef = useRef(lectureId);
+  const pathRef = useRef(playbackPath);
 
   useEffect(() => {
     lectureIdRef.current = lectureId;
-  }, [lectureId]);
+    pathRef.current = playbackPath;
+  }, [lectureId, playbackPath]);
 
   const persist = useCallback(async (seconds: number) => {
     const rounded = Math.max(0, Math.floor(seconds));
     if (Math.abs(rounded - lastSaved.current) < 2) return;
     lastSaved.current = rounded;
     try {
-      await fetch(`/api/lectures/${lectureIdRef.current}/playback`, {
+      const path =
+        pathRef.current ?? `/api/lectures/${lectureIdRef.current}/playback`;
+      await fetch(path, {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ positionSeconds: rounded }),

@@ -12,11 +12,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "OSSU Journey",
-    template: "%s · OSSU Journey",
+    default: "Learning Hub",
+    template: "%s · Learning Hub",
   },
   description:
-    "Momen's path through the OSSU computer science curriculum, with MIT 6.100L lectures, understanding checks, and a Cairo morning study streak.",
+    "Personal learning hub: OSSU programs, English and German tracks, content mix targets, and YouTube playlists without the rabbit hole.",
 };
 
 export default function RootLayout({

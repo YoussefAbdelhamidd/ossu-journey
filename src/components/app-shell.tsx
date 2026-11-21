@@ -6,7 +6,8 @@ import type { CurrentItem } from "@/lib/progress";
 
 const links = [
   { href: "/dashboard", label: "Journey" },
-  { href: "/curriculum", label: "Curriculum" },
+  { href: "/curriculum", label: "Programs" },
+  { href: "/library", label: "Library" },
 ];
 
 export function AppShell({
@@ -18,7 +19,14 @@ export function AppShell({
   nextStep: CurrentItem | null;
   children: React.ReactNode;
 }) {
-  const nav = user.role === "TUTOR" ? [...links, { href: "/tutor", label: "Review" }] : links;
+  const nav =
+    user.role === "TUTOR"
+      ? [
+          { href: "/dashboard", label: "Journey" },
+          { href: "/curriculum", label: "Programs" },
+          { href: "/tutor", label: "Review" },
+        ]
+      : links;
 
   return (
     <div className="min-h-dvh">
@@ -28,7 +36,7 @@ export function AppShell({
             href="/dashboard"
             className="min-w-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e6b66]"
           >
-            <p className="font-sans text-lg leading-snug font-semibold text-[#0a3f3d]">OSSU Journey</p>
+            <p className="font-sans text-lg leading-snug font-semibold text-[#0a3f3d]">Learning Hub</p>
             <p className="truncate text-xs text-[#5e564a]">{user.name}</p>
           </Link>
           <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">

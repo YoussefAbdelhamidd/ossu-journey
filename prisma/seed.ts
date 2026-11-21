@@ -2,12 +2,19 @@ import { existsSync, readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { courseDetails, readings, sections } from "./seed-data";
+import { learnerLibraryGroups } from "./seed-data/library-tracks";
 import {
   COURSE_COVERS,
   SECTION_COVERS,
   certificateFor,
 } from "./seed-data/readings";
 import { estimatedHours } from "./seed-data/types";
+import { DEFAULT_CONTENT_MIX, LIBRARY_CATEGORIES } from "../src/lib/library-categories";
+import {
+  fetchPlaylistItems,
+  parseYoutubePlaylistId,
+  thumbnailUrl,
+} from "../src/lib/youtube";
 
 loadEnvFile();
 
@@ -62,7 +69,7 @@ function assignmentId(courseId: string, code: string) {
 
 async function main() {
   const learnerEmail = envOrDev("LEARNER_EMAIL", "momen@ossu.local");
-  const learnerPassword = envOrDev("LEARNER_PASSWORD", "study-at-dawn");
+  const learnerPassword = envOrDev("LEARNER_PASSWORD", "Vdlz1L4P5icHj4aQW-Lr");
   const learnerName = envOrDev("LEARNER_NAME", "Momen");
   const tutorEmail = envOrDev("TUTOR_EMAIL", "tutor@ossu.local");
   const tutorPassword = envOrDev("TUTOR_PASSWORD", "review-desk");
@@ -71,7 +78,7 @@ async function main() {
   const learnerHash = await bcrypt.hash(learnerPassword, 10);
   const tutorHash = await bcrypt.hash(tutorPassword, 10);
 
-  await prisma.user.upsert({
+  const learner = await prisma.user.upsert({
     where: { email: learnerEmail },
     update: {
       name: learnerName,
@@ -104,6 +111,89 @@ async function main() {
       timezone: "Africa/Cairo",
     },
   });
+
+  for (const category of LIBRARY_CATEGORIES) {
+    await prisma.userContentMix.upsert({
+      where: { userId_category: { userId: learner.id, category } },
+      update: { percent: DEFAULT_CONTENT_MIX[category] },
+      create: {
+        userId: learner.id,
+        category,
+        percent: DEFAULT_CONTENT_MIX[category],
+      },
+    });
+  }
+
+  for (const track of learnerLibraryGroups) {
+    await prisma.libraryGroup.upsert({
+      where: { id: track.id },
+      update: {
+        ownerId: learner.id,
+        category: track.category,
+        title: track.title,
+        coverImage: track.coverImage,
+        isCourse: track.isCourse,
+        playlistUrl: track.playlistUrl,
+        order: track.order,
+      },
+      create: {
+        id: track.id,
+        ownerId: learner.id,
+        category: track.category,
+        title: track.title,
+        coverImage: track.coverImage,
+        isCourse: track.isCourse,
+        playlistUrl: track.playlistUrl,
+        order: track.order,
+      },
+    });
+
+    await prisma.libraryGoal.deleteMany({ where: { groupId: track.id } });
+    if (track.goals.length > 0) {
+      await prisma.libraryGoal.createMany({
+        data: track.goals.map((body, order) => ({
+          groupId: track.id,
+          body,
+          order,
+        })),
+      });
+    }
+
+    if (track.playlistUrl) {
+      const playlistId = parseYoutubePlaylistId(track.playlistUrl);
+      if (playlistId) {
+        try {
+          const items = await fetchPlaylistItems(playlistId);
+          if (items.length > 0) {
+            await prisma.libraryEpisode.deleteMany({ where: { groupId: track.id } });
+            await prisma.libraryEpisode.createMany({
+              data: items.map((item, index) => ({
+                groupId: track.id,
+                number: index + 1,
+                order: index,
+                title: item.title,
+                summary: item.summary,
+                youtubeId: item.youtubeId,
+                durationSeconds: item.durationSeconds,
+              })),
+            });
+            if (!track.coverImage && items[0]?.youtubeId) {
+              await prisma.libraryGroup.update({
+                where: { id: track.id },
+                data: { coverImage: thumbnailUrl(items[0].youtubeId) },
+              });
+            }
+            console.log(`Imported ${items.length} episodes for ${track.title}`);
+          }
+        } catch (error) {
+          console.warn(
+            `Playlist import skipped for ${track.id}:`,
+            error instanceof Error ? error.message : error,
+          );
+        }
+      }
+    }
+  }
 
   const details = new Map(courseDetails.map((detail) => [detail.courseId, detail]));
 
@@ -345,9 +435,14 @@ async function main() {
       prisma.reading.count(),
     ]);
 
+  const libraryGroupCount = await prisma.libraryGroup.count({
+    where: { ownerId: learner.id },
+  });
+
   console.log(
     `Seeded ${courseCount} courses, ${lectureCount} lectures, ${questionCount} questions, ${assignmentCount} assignments, ${readingCount} readings.`,
   );
+  console.log(`Learner library groups: ${libraryGroupCount}`);
   console.log(`Learner: ${learnerEmail}`);
   console.log(`Tutor:   ${tutorEmail}`);
 }

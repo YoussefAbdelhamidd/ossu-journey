@@ -24,16 +24,16 @@ export default async function LoginPage({
         }}
       >
         <p className="text-xs tracking-[0.18em] text-[#d7ebe6] uppercase">Cairo · 7:00–9:00</p>
-        <p className="mt-3 font-sans text-3xl font-semibold leading-tight">Study the degree one lecture at a time</p>
+        <p className="mt-3 font-sans text-3xl font-semibold leading-tight">Programs, languages, and the rest — on purpose</p>
         <p className="mt-3 text-sm text-[#d7ebe6]">
-          Notes, resume position, and a locked path so you stay with the course.
+          Your library, mix targets, locked courses, and YouTube tracks without the rabbit hole.
         </p>
       </div>
       <div className="mx-auto flex w-full max-w-lg flex-col justify-center">
-        <p className="text-xs tracking-[0.18em] text-[#0e6b66] uppercase">OSSU Journey</p>
+        <p className="text-xs tracking-[0.18em] text-[#0e6b66] uppercase">Learning Hub</p>
         <h1 className="mt-2 text-4xl text-[#0a3f3d]">Sign in</h1>
         <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-          One learner desk for the OSSU computer science curriculum.
+          OSSU programs plus your own English, German, and other groups.
         </p>
         <div className="mt-8 rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
           <LoginForm nextPath={params.next ?? "/dashboard"} />
@@ -42,7 +42,7 @@ export default async function LoginPage({
               <p>Local accounts, from your env file:</p>
               <p className="mt-2">
                 Learner {process.env.LEARNER_EMAIL ?? "momen@ossu.local"} ·{" "}
-                {process.env.LEARNER_PASSWORD ?? "study-at-dawn"}
+                {process.env.LEARNER_PASSWORD ?? "Vdlz1L4P5icHj4aQW-Lr"}
               </p>
               <p>
                 Tutor {process.env.TUTOR_EMAIL ?? "tutor@ossu.local"} ·{" "}

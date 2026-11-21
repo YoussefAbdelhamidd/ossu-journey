@@ -10,19 +10,23 @@ datasource db {
 
 /// Single learner plus a tutor who reviews understanding-check answers.
 model User {
-  id           String         @id @default(cuid())
-  email        String         @unique
-  name         String
-  passwordHash String
-  role         String
-  timezone     String         @default("Africa/Cairo")
-  createdAt    DateTime       @default(now())
-  answers      Answer[]
-  progress     Progress[]
-  studyDays    StudyDay[]
-  feedback     Feedback[]     @relation("TutorFeedback")
-  notes        LectureNote[]
-  playbacks    Playback[]
+  id              String            @id @default(cuid())
+  email           String            @unique
+  name            String
+  passwordHash    String
+  role            String
+  timezone        String            @default("Africa/Cairo")
+  createdAt       DateTime          @default(now())
+  answers         Answer[]
+  progress        Progress[]
+  studyDays       StudyDay[]
+  feedback        Feedback[]        @relation("TutorFeedback")
+  notes           LectureNote[]
+  playbacks       Playback[]
+  libraryGroups   LibraryGroup[]
+  contentMix      UserContentMix[]
+  episodeNotes    EpisodeNote[]
+  episodePlaybacks EpisodePlayback[]
 }
 
 model Section {
@@ -222,4 +226,90 @@ model StudyDay {
   inWindow Boolean @default(false)
 
   @@unique([userId, date])
+}
+
+/// Personal library group owned by one learner (English, German, religion, etc.).
+model LibraryGroup {
+  id          String           @id @default(cuid())
+  ownerId     String
+  owner       User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category    String
+  title       String
+  coverImage  String?
+  isCourse    Boolean          @default(false)
+  playlistUrl String?
+  startedAt   DateTime?
+  shareToken  String?          @unique
+  order       Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  episodes    LibraryEpisode[]
+  goals       LibraryGoal[]
+
+  @@index([ownerId])
+  @@index([category])
+}
+
+model LibraryEpisode {
+  id              String            @id @default(cuid())
+  groupId         String
+  group           LibraryGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  number          Int
+  title           String
+  summary         String?
+  youtubeId       String?
+  durationSeconds Int?
+  order           Int
+  notes           EpisodeNote[]
+  playbacks       EpisodePlayback[]
+
+  @@unique([groupId, number])
+  @@index([groupId])
+}
+
+model LibraryGoal {
+  id      String       @id @default(cuid())
+  groupId String
+  group   LibraryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  body    String
+  order   Int
+
+  @@index([groupId])
+}
+
+model UserContentMix {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category String
+  percent  Int
+
+  @@unique([userId, category])
+  @@index([userId])
+}
+
+model EpisodeNote {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodeId String
+  episode   LibraryEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  body      String         @default("")
+  updatedAt DateTime       @updatedAt
+
+  @@unique([userId, episodeId])
+  @@index([userId])
+}
+
+model EpisodePlayback {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodeId       String
+  episode         LibraryEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  positionSeconds Int            @default(0)
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([userId, episodeId])
+  @@index([userId])
 }

@@ -39,7 +39,7 @@ describe("API", () => {
   });
 
   it("signs Momen in and keeps an answer without a model solution", async () => {
-    const { response, token } = await signIn("momen@ossu.local", "study-at-dawn");
+    const { response, token } = await signIn("momen@ossu.local", "Vdlz1L4P5icHj4aQW-Lr");
     expect(response.status).toBe(200);
     expect(token).toBeTruthy();
 

@@ -36,8 +36,10 @@ If the database URL is not on localhost, the seed refuses to invent passwords. S
 
 | Role | Email | Password |
 | --- | --- | --- |
-| Learner | `momen@ossu.local` | `study-at-dawn` |
+| Learner | `momen@ossu.local` | from `LEARNER_PASSWORD` in `.env` |
 | Tutor | `tutor@ossu.local` | `review-desk` |
+
+Learners also get a personal **Library** (English/German tracks, religion/entertainment shells, content-mix targets, share/copy). Paste a public YouTube playlist URL in the control panel and use **Import playlist episodes** — no Google API key needed.
 
 Override them in `.env`. The sign-in page shows these values only when `NODE_ENV` is not `production`.
 

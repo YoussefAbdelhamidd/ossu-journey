@@ -122,7 +122,9 @@ export default async function LibraryGroupPage({
                           href={`/library/e/${episode.id}`}
                           className="rounded-lg bg-[#0e6b66] px-3 py-1.5 text-sm text-white hover:bg-[#0a3f3d]"
                         >
-                          Watch
+                          {episode.externalUrl && !episode.youtubeId
+                            ? "Open link"
+                            : "Watch"}
                         </Link>
                         <ProgressToggle
                           targetType="library_episode"

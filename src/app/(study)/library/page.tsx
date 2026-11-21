@@ -30,8 +30,9 @@ export default async function LibraryPage() {
             Library
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            English, German, religion, entertainment, and other groups you own. Programs
-            (OSSU) stay on the Curriculum page.
+            English, German, religion, and safe film/series sets. Programs (OSSU) stay on
+            the Curriculum page. Entertainment uses official free sources only — no pirate
+            streamers.
           </p>
         </div>
         <Link

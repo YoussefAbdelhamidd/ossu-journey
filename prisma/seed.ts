@@ -159,7 +159,21 @@ async function main() {
       });
     }
 
-    if (track.playlistUrl) {
+    if (track.curatedEpisodes && track.curatedEpisodes.length > 0) {
+      await prisma.libraryEpisode.deleteMany({ where: { groupId: track.id } });
+      await prisma.libraryEpisode.createMany({
+        data: track.curatedEpisodes.map((item, index) => ({
+          groupId: track.id,
+          number: index + 1,
+          order: index,
+          title: item.title,
+          summary: item.summary,
+          youtubeId: item.youtubeId ?? null,
+          externalUrl: item.externalUrl ?? null,
+        })),
+      });
+      console.log(`Curated ${track.curatedEpisodes.length} safe links for ${track.title}`);
+    } else if (track.playlistUrl) {
       const playlistId = parseYoutubePlaylistId(track.playlistUrl);
       if (playlistId) {
         try {
@@ -194,6 +208,11 @@ async function main() {
       }
     }
   }
+
+  // Remove old empty entertainment shell if it still exists from earlier seeds.
+  await prisma.libraryGroup.deleteMany({
+    where: { id: "lib-entertainment-shell" },
+  });
 
   const details = new Map(courseDetails.map((detail) => [detail.courseId, detail]));
 

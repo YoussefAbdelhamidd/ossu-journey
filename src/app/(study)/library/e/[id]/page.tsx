@@ -69,9 +69,25 @@ export default async function LibraryEpisodePage({
           startSeconds={episode.positionSeconds}
           playbackPath={`/api/library/episodes/${episode.id}/playback`}
         />
+      ) : episode.externalUrl ? (
+        <div className="rounded-2xl bg-card p-6 ring-1 ring-foreground/10">
+          <p className="text-sm text-muted-foreground">
+            Official / public source — opens on their site (no third-party “free movie”
+            players, so you avoid pop-up and 18+ ads).
+          </p>
+          <a
+            href={episode.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex rounded-lg bg-[#0e6b66] px-4 py-2 text-sm font-medium text-white hover:bg-[#0a3f3d]"
+          >
+            Open official page
+          </a>
+          <p className="mt-3 break-all text-xs text-muted-foreground">{episode.externalUrl}</p>
+        </div>
       ) : (
         <p className="rounded-2xl bg-card p-5 text-sm text-muted-foreground ring-1 ring-foreground/10">
-          No YouTube id on this episode.
+          No video link on this episode.
         </p>
       )}
 

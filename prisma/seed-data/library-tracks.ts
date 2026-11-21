@@ -1,5 +1,12 @@
 import type { LibraryCategory } from "../../src/lib/library-categories";
 
+export type SeedCuratedEpisode = {
+  title: string;
+  summary: string;
+  externalUrl?: string;
+  youtubeId?: string;
+};
+
 export type SeedLibraryGroup = {
   /** Stable id so re-seed upserts the same groups. */
   id: string;
@@ -11,6 +18,11 @@ export type SeedLibraryGroup = {
   order: number;
   /** Starter goals shown on courses. */
   goals: string[];
+  /**
+   * Hand-picked official / public-domain links (no pirate streamers).
+   * When set, these replace playlist import for that group.
+   */
+  curatedEpisodes?: SeedCuratedEpisode[];
 };
 
 /**
@@ -148,21 +160,118 @@ export const learnerLibraryGroups: SeedLibraryGroup[] = [
     goals: [],
   },
 
-  // —— Shells ——
+  // —— Film & series (safe free sources only — no pirate / ad / 18+ streamers) ——
+  {
+    id: "lib-ent-en-films",
+    category: "ENTERTAINMENT",
+    title: "English set — films & drama (safe free)",
+    isCourse: false,
+    playlistUrl: "https://www.youtube.com/playlist?list=PLNJtcf4NKZzsgyoYfsAUuGIYDbP6VDqLg",
+    coverImage: null,
+    order: 0,
+    goals: [
+      "Only official / public-domain sources — never random “free movie” sites",
+      "Silent Chaplin shorts on YouTube are family-safe visual stories for learners",
+      "Use BBC / Archive links for spoken English with clean players",
+    ],
+    curatedEpisodes: [
+      {
+        title: "BBC Learning English — official programmes hub",
+        summary:
+          "Free dramas, conversations, and series from BBC Learning English. Watch on their site (cleaner than random streamers).",
+        externalUrl: "https://www.bbc.com/learningenglish",
+      },
+      {
+        title: "BBC — Easy English Conversations (A1)",
+        summary: "Short, elementary conversation videos for beginners.",
+        externalUrl: "https://www.bbc.com/learningenglish/english/features/easy_english_conversations",
+      },
+      {
+        title: "Internet Archive — Express English (BBC collection)",
+        summary:
+          "Public Archive collection of Express English shorts (Dancing, Freedom, Hope…). Download or stream on archive.org.",
+        externalUrl: "https://archive.org/details/ExpressEnglishDancing",
+      },
+      {
+        title: "Internet Archive — English at Work (BBC box set sample)",
+        summary: "Office English drama clips from the BBC Learning English archive.",
+        externalUrl: "https://archive.org/details/youtube-o1BC8uOzdXo",
+      },
+      {
+        title: "Charlie Chaplin shorts (public-domain era) — YouTube playlist",
+        summary:
+          "Family-friendly silent comedies. Great for story comprehension without adult ads. Open playlist after import, or use the group’s YouTube import.",
+        externalUrl: "https://www.youtube.com/playlist?list=PLNJtcf4NKZzsgyoYfsAUuGIYDbP6VDqLg",
+      },
+    ],
+  },
+  {
+    id: "lib-ent-de-films",
+    category: "ENTERTAINMENT",
+    title: "German set — films & series (safe free)",
+    isCourse: false,
+    playlistUrl: "https://www.youtube.com/playlist?list=PLs7zUO7VPyJ6Ufol7Z4FfkCviaETvl3c8",
+    coverImage: null,
+    order: 1,
+    goals: [
+      "Prefer DW + public broadcasters (ARD/ZDF) — geo-blocked sometimes, but legal and ad-safe",
+      "Harry + Jojo are learner series made for language study",
+      "Die Sendung mit der Maus is ideal beginner listening (family TV)",
+    ],
+    curatedEpisodes: [
+      {
+        title: "DW — Learn German with videos (hub)",
+        summary: "Official Deutsche Welle video courses and learner series, with exercises.",
+        externalUrl: "https://learngerman.dw.com/en/learn-german-with-videos/s-68307454",
+      },
+      {
+        title: "Harry – gefangen in der Zeit (A1–A2) — YouTube",
+        summary: "DW learner multimedia series. Family-friendly time-loop story for beginners.",
+        externalUrl: "https://www.youtube.com/playlist?list=PLs7zUO7VPyJ6Ufol7Z4FfkCviaETvl3c8",
+      },
+      {
+        title: "Jojo sucht das Glück — Staffel 1 (B1/B2) — YouTube",
+        summary: "DW telenovela for intermediate German. Educational; mild teenage drama, not 18+.",
+        externalUrl: "https://www.youtube.com/playlist?list=PLs7zUO7VPyJ5q8vaO9vohSzNntbYvItJR",
+      },
+      {
+        title: "Jojo sucht das Glück — Staffel 2 — YouTube",
+        summary: "Continue the DW learner series after Staffel 1.",
+        externalUrl: "https://www.youtube.com/playlist?list=PLs7zUO7VPyJ6tTk_HgUDHEMn1ej5673fo",
+      },
+      {
+        title: "Jojo sucht das Glück — Staffel 3 — YouTube",
+        summary: "Final season of the DW learner telenovela.",
+        externalUrl: "https://www.youtube.com/playlist?list=PLs7zUO7VPyJ6-i229_Enu4OCHZKe_PwWO",
+      },
+      {
+        title: "Die Sendung mit der Maus — ARD Mediathek",
+        summary: "Classic German children’s show: clear, slow explanations. Free on ARD (may be geo-limited).",
+        externalUrl: "https://www.ardmediathek.de/sendung/die-sendung-mit-der-maus/Y3JpZDovL3dkci5kZS9zZW5kdW5nL2RpZS1zZW5kdW5nLW1pdC1kZXItbWF1cw",
+      },
+      {
+        title: "ARD Mediathek — films & series with German subtitles",
+        summary: "German public TV. Pick family/education titles; avoid horror listings.",
+        externalUrl: "https://www.ardmediathek.de/untertitel",
+      },
+      {
+        title: "ZDF Mediathek — free German TV",
+        summary: "Another official German broadcaster library. Use German subtitles when available.",
+        externalUrl: "https://www.zdf.de/",
+      },
+      {
+        title: "Easy German — street interviews (start by level)",
+        summary: "Real spoken German with dual subtitles. Start at Absolute Beginners / Super Easy.",
+        externalUrl: "https://www.easygerman.org/",
+      },
+    ],
+  },
+
+  // —— Shell ——
   {
     id: "lib-religion-shell",
     category: "RELIGION",
     title: "Religion — add your tracks",
-    isCourse: false,
-    playlistUrl: null,
-    coverImage: null,
-    order: 0,
-    goals: [],
-  },
-  {
-    id: "lib-entertainment-shell",
-    category: "ENTERTAINMENT",
-    title: "Entertainment — keep it small",
     isCourse: false,
     playlistUrl: null,
     coverImage: null,

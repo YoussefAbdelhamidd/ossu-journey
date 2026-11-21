@@ -258,6 +258,8 @@ model LibraryEpisode {
   title           String
   summary         String?
   youtubeId       String?
+  /// Official / public-domain watch page (BBC, DW, Archive, ARD…). Never sketchy streamers.
+  externalUrl     String?
   durationSeconds Int?
   order           Int
   notes           EpisodeNote[]
